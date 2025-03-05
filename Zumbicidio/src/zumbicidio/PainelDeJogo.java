@@ -4,11 +4,14 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JOptionPane;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -24,67 +27,75 @@ public class PainelDeJogo extends JPanel {
         this.tabuleiro = tabuleiro;
         this.percepcao = percepcao;
         setBackground(new Color(0x5E2129));
-        setLayout(new GridBagLayout());
-        setPreferredSize(new Dimension(900, 900));
-
+        setLayout(new BorderLayout(5, 5));
+        
+        JPanel painelTopo = new JPanel(new BorderLayout());
+        painelTopo.setBackground(new Color(0x5E2129));
+        
         mensagem = new JLabel(modoDebug ? "Modo DEBUG ativado!" : "Jogo iniciado! Percepção: " + percepcao);
         mensagem.setForeground(Color.WHITE);
-
-        botaoSalvar = criarBotao("Salvar");
-        botaoGuia = criarBotao("Guia");
-        botaoSair = criarBotao("Sair");
-        botaoBater = criarBotao("Bater");
-        botaoAtirar = criarBotao("Atirar");
-        botaoBandagem = criarBotao("Bandagem");
-        botaoVida = criarBotao("Vida");
-
-        GridBagConstraints c = new GridBagConstraints();
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.insets = new Insets(10, 10, 10, 10);
-
-        // Adiciona a mensagem no topo
-        c.gridx = 0;
-        c.gridy = 0;
-        c.gridwidth = 3; // Ocupa 3 colunas
-        add(mensagem, c);
-
-        // Adiciona os botões Guia, Salvar e Sair acima dos botões de ação
-        c.gridwidth = 1; // Reseta para 1 coluna
-        c.gridy = 1;
-        c.gridx = 0;
-        add(botaoGuia, c);
-
-        c.gridx = 1;
-        add(botaoSalvar, c);
-
-        c.gridx = 2;
-        add(botaoSair, c);
-
-        // Adiciona os botões de ação em um quadrado centralizado
-        c.gridy = 2;
-        c.gridx = 0;
-        add(botaoBater, c);
-
-        c.gridx = 1;
-        add(botaoAtirar, c);
-
-        c.gridy = 3;
-        c.gridx = 0;
-        add(botaoBandagem, c);
-
-        c.gridx = 1;
-        add(botaoVida, c);
-
-        // Adiciona o tabuleiro abaixo dos botões de ação
-        c.gridx = 0;
-        c.gridy = 4;
-        c.gridwidth = 3;
-        c.weightx = 1.0;
-        c.weighty = 1.0;
-        c.fill = GridBagConstraints.BOTH;
-        add(tabuleiro, c);
-
-        // Configura os listeners dos botões
+        mensagem.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        painelTopo.add(mensagem, BorderLayout.CENTER);
+        
+        add(painelTopo, BorderLayout.NORTH);
+        
+        add(tabuleiro, BorderLayout.CENTER);
+        
+        JPanel painelAcoes = new JPanel();
+        painelAcoes.setLayout(new BoxLayout(painelAcoes, BoxLayout.Y_AXIS));
+        painelAcoes.setBackground(new Color(0x5E2129));
+        painelAcoes.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        
+        JPanel painelCombate = new JPanel(new GridLayout(2, 1, 3, 3));
+        painelCombate.setBackground(new Color(0x5E2129));
+        painelCombate.setBorder(BorderFactory.createTitledBorder(
+            BorderFactory.createLineBorder(Color.WHITE), "Combate", 
+            javax.swing.border.TitledBorder.CENTER, 
+            javax.swing.border.TitledBorder.TOP, null, Color.WHITE));
+        
+        botaoBater = criarBotao("Bater", new Dimension(80, 30));
+        botaoAtirar = criarBotao("Atirar", new Dimension(80, 30));
+        painelCombate.add(botaoBater);
+        painelCombate.add(botaoAtirar);
+        painelAcoes.add(painelCombate);
+        
+        painelAcoes.add(Box.createRigidArea(new Dimension(0, 10)));
+        
+        JPanel painelStatus = new JPanel(new GridLayout(2, 1, 3, 3));
+        painelStatus.setBackground(new Color(0x5E2129));
+        painelStatus.setBorder(BorderFactory.createTitledBorder(
+            BorderFactory.createLineBorder(Color.WHITE), "Status", 
+            javax.swing.border.TitledBorder.CENTER, 
+            javax.swing.border.TitledBorder.TOP, null, Color.WHITE));
+        
+        botaoBandagem = criarBotao("Cura", new Dimension(80, 30));
+        botaoVida = criarBotao("Vida", new Dimension(80, 30));
+        painelStatus.add(botaoBandagem);
+        painelStatus.add(botaoVida);
+        painelAcoes.add(painelStatus);
+        
+        painelAcoes.add(Box.createRigidArea(new Dimension(0, 10)));
+        
+        JPanel painelSistema = new JPanel(new GridLayout(3, 1, 3, 3));
+        painelSistema.setBackground(new Color(0x5E2129));
+        painelSistema.setBorder(BorderFactory.createTitledBorder(
+            BorderFactory.createLineBorder(Color.WHITE), "Sistema", 
+            javax.swing.border.TitledBorder.CENTER, 
+            javax.swing.border.TitledBorder.TOP, null, Color.WHITE));
+        
+        botaoGuia = criarBotao("Guia", new Dimension(80, 30));
+        botaoSalvar = criarBotao("Salvar", new Dimension(80, 30));
+        botaoSair = criarBotao("Sair", new Dimension(80, 30));
+        
+        painelSistema.add(botaoGuia);
+        painelSistema.add(botaoSalvar);
+        painelSistema.add(botaoSair);
+        painelAcoes.add(painelSistema);
+        
+        painelAcoes.add(Box.createVerticalGlue());
+        
+        add(painelAcoes, BorderLayout.EAST);
+        
         botaoSalvar.addActionListener(e -> tabuleiro.salvarJogo(frame.getSavePath()));
 
         botaoGuia.addActionListener(e -> {
@@ -139,8 +150,8 @@ public class PainelDeJogo extends JPanel {
                 } else {
                     Personagem personagem = tabuleiro.getPersonagem();
                     if (personagem.getBandagens() > 0) {
-                        Agir.heal(personagem);
-                        mensagem.setText("Bandagem usada! Vida atual: " + personagem.getVida() + ", Bandagens: " + personagem.getBandagens());
+                        tabuleiro.turnoPersonagem("curar"); // Chama turnoPersonagem para cura
+                        // Não definir mensagem aqui, deixar Tabuleiro exibir via JOptionPane
                     } else {
                         mensagem.setText("Você não tem bandagens!");
                     }
@@ -159,13 +170,13 @@ public class PainelDeJogo extends JPanel {
         atualizarMensagem();
     }
 
-    private JButton criarBotao(String texto) {
+    private JButton criarBotao(String texto, Dimension tamanho) {
         JButton botao = new JButton(texto);
         botao.setBackground(Color.BLACK);
         botao.setForeground(Color.WHITE);
         botao.setOpaque(true);
         botao.setBorderPainted(false);
-        botao.setPreferredSize(new Dimension(100, 30));
+        botao.setPreferredSize(tamanho);
         return botao;
     }
 
@@ -179,7 +190,7 @@ public class PainelDeJogo extends JPanel {
             else if (relatorio.contains("Zumbi rastejante")) classeZumbi = "rastejante";
             else if (relatorio.contains("Zumbi gigante")) classeZumbi = "gigante";
             mensagem.setText("Zumbi " + classeZumbi + " morto! Vida restante: " + personagem.getVida());
-        } else if (!relatorio.isEmpty()) {
+        } else if (!relatorio.isEmpty() && tabuleiro.isEmCombate()) {
             mensagem.setText(relatorio);
         }
     }

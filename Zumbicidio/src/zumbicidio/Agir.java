@@ -7,7 +7,7 @@ public class Agir {
 
     public static class ResultadoAtaque {
         public final int dano;
-        public final int dadoCritico; // Alterado para dadoCritico, já que é só para crítico
+        public final int dadoCritico;
 
         public ResultadoAtaque(int dano, int dadoCritico) {
             this.dano = dano;
@@ -15,26 +15,24 @@ public class Agir {
         }
     }
 
-    // Ataque do personagem contra zumbi (sempre acerta, rola apenas crítico)
     public static ResultadoAtaque bater(Personagem atacante, Entidade alvo) {
-        int dano = atacante.getAtaque(); // 1 ou 2 dependendo do taco
-        int dadoCritico = random.nextInt(6) + 1; // Dado de 1 a 6 para crítico
+        int dano = atacante.getAtaque();
+        int dadoCritico = random.nextInt(6) + 1;
         if (dadoCritico == 6) {
-            dano = 3; // Crítico
+            dano = 3;
         }
         return new ResultadoAtaque(dano, dadoCritico);
     }
 
-    // Ataque do zumbi contra personagem (mantém percepção para esquiva)
     public static ResultadoAtaque bater(Entidade atacante, Personagem alvo) {
-        int dano = 1; // Dano base dos zumbis
-        int dadoPercepcao = random.nextInt(5); // Dado de 0 a 4
+        int dano = 1;
+        int dadoPercepcao = random.nextInt(5);
         if (dadoPercepcao <= alvo.getPercepcao()) {
-            dano = 0; // Personagem esquivou
+            dano = 0;
         } else {
-            int dadoCritico = random.nextInt(6) + 1; // Dado de 1 a 6
+            int dadoCritico = random.nextInt(6) + 1;
             if (dadoCritico == 6) {
-                dano = 3; // Crítico
+                dano = 3;
             }
         }
         return new ResultadoAtaque(dano, dadoPercepcao);
@@ -43,18 +41,22 @@ public class Agir {
     public static ResultadoAtaque atirar(Personagem personagem, Entidade alvo) {
         if (personagem.getBalas() > 0) {
             personagem.usarBala();
-            int dadoCritico = random.nextInt(6) + 1; // Rola crítico mesmo para atirar
-            int dano = (dadoCritico == 6) ? 3 : 2; // 3 se crítico, 2 padrão
+            int dadoCritico = random.nextInt(6) + 1;
+            int dano = (dadoCritico == 6) ? 3 : 2;
             return new ResultadoAtaque(dano, dadoCritico);
         }
-        return new ResultadoAtaque(0, -1); // Sem balas, dado irrelevante
+        return new ResultadoAtaque(0, -1);
     }
 
-    public static void heal(Personagem personagem) {
+    public static void heal(Personagem personagem, Tabuleiro tabuleiro) {
         if (personagem.getBandagens() > 0) {
             int novaVida = Math.min(personagem.getVida() + 2, 5);
             personagem.setVida(novaVida);
             personagem.usarBandagem();
+            if (!tabuleiro.isEmCombate()) {
+                // Usar turnoPersonagem para gerenciar o turno fora de combate
+                tabuleiro.turnoPersonagem("curar");
+            }
         }
     }
 

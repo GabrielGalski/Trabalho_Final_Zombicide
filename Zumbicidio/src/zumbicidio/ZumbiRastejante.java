@@ -9,7 +9,7 @@ public class ZumbiRastejante extends Imovel implements Serializable {
     private int vida;
 
     public ZumbiRastejante(int posX, int posY) {
-        super('V'); // Tipo interno agora é 'V'
+        super('R'); // Tipo interno agora é 'V'
         this.posX = posX;
         this.posY = posY;
         this.vida = 1; // Vida inicial
