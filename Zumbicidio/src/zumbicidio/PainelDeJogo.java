@@ -142,22 +142,23 @@ public class PainelDeJogo extends JPanel {
             }
         });
 
-        botaoBandagem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (tabuleiro.isEmCombate()) {
-                    mensagem.setText("Bandagem só pode ser usada fora de combate!");
-                } else {
-                    Personagem personagem = tabuleiro.getPersonagem();
-                    if (personagem.getBandagens() > 0) {
-                        tabuleiro.turnoPersonagem("curar"); // Chama turnoPersonagem para cura
-                        // Não definir mensagem aqui, deixar Tabuleiro exibir via JOptionPane
-                    } else {
-                        mensagem.setText("Você não tem bandagens!");
-                    }
-                }
+botaoBandagem.addActionListener(new ActionListener() {
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (tabuleiro.isEmCombate()) {
+            mensagem.setText("Bandagem só pode ser usada fora de combate!");
+        } else {
+            Personagem personagem = tabuleiro.getPersonagem();
+            if (personagem.getBandagens() > 0) {
+                tabuleiro.turnoPersonagem("curar");
+                // A mensagem é exibida pelo próprio tabuleiro via JOptionPane
+            } else {
+                // Usar apenas a mensagem no topo do jogo ao invés de um diálogo
+                mensagem.setText("Você não tem bandagens!");
             }
-        });
+        }
+    }
+});
 
         botaoVida.addActionListener(new ActionListener() {
             @Override

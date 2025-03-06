@@ -215,18 +215,24 @@ public void turnoPersonagem(String acao) {
                 relatorioCombate.append("Sem balas para atirar!\n");
             }
             break;
-        case "curar":
-            int vidaAntes = personagem.getVida();
-            Agir.heal(personagem, this);
-            int vidaDepois = personagem.getVida();
-            if (vidaDepois > vidaAntes) {
-                relatorioCombate.append("Você usou uma bandagem e recuperou ")
-                              .append(vidaDepois - vidaAntes)
-                              .append(" pontos de vida!\n");
-            } else {
-                relatorioCombate.append("Você não tem bandagens para usar!\n");
-            }
-            break;
+case "curar":
+    int vidaAntes = personagem.getVida();
+    boolean tinhaItem = personagem.getBandagens() > 0;
+    Agir.heal(personagem, this);
+    int vidaDepois = personagem.getVida();
+    
+    relatorioCombate = new StringBuilder(); // Reinicia o relatório antes de adicionar qualquer mensagem
+    
+    if (vidaDepois > vidaAntes) {
+        relatorioCombate.append("Você usou uma bandagem e recuperou ")
+                      .append(vidaDepois - vidaAntes)
+                      .append(" pontos de vida!");
+    } else if (tinhaItem) {
+        relatorioCombate.append("Não foi possível usar a bandagem agora.");
+    } else {
+        relatorioCombate.append("Você não tem bandagens para usar!");
+    }
+    break;
         case "moverZumbis":
             if (!combateAtivo) {
                 moverZumbis();
@@ -327,62 +333,38 @@ public void turnoPersonagem(String acao) {
         verificarFimDeJogo();
     }
     
-    private boolean tentarMoverZumbi(int x, int y, int deltaX, int deltaY, Entidade zumbi, boolean isZumbiCorredor) {
-        if (deltaX == 0 && deltaY == 0) return false;
+   private boolean tentarMoverZumbi(int x, int y, int deltaX, int deltaY, Entidade zumbi, boolean isZumbiCorredor) {
+    if (deltaX == 0 && deltaY == 0) return false;
+    
+    int maxStep = Math.max(Math.abs(deltaX), Math.abs(deltaY));
+    
+    // Tenta mover na direção do jogador com o passo máximo permitido
+    for (int step = maxStep; step > 0; step--) {
+        int passoX = Integer.signum(deltaX) * step;
+        int passoY = Integer.signum(deltaY) * step;
         
-        int maxStep = Math.max(Math.abs(deltaX), Math.abs(deltaY));
+        int novoX = x + passoX;
+        int novoY = y + passoY;
         
-        for (int step = maxStep; step > 0; step--) {
-            int passoX = Integer.signum(deltaX) * step;
-            int passoY = Integer.signum(deltaY) * step;
+        if (isDentroDoTabuleiro(novoX, novoY)) {
+            if (novoX == jogadorX && novoY == jogadorY) {
+                iniciarCombate(x, y);
+                return true;
+            }
             
-            int novoX = x + passoX;
-            int novoY = y + passoY;
-            
-            if (isDentroDoTabuleiro(novoX, novoY)) {
-                if (novoX == jogadorX && novoY == jogadorY) {
-                    iniciarCombate(x, y);
-                    return true;
-                }
+            if (step == 2 && isZumbiCorredor) {
+                int interX = x + Integer.signum(deltaX);
+                int interY = y + Integer.signum(deltaY);
                 
-                if (step == 2 && isZumbiCorredor) {
-                    int interX = x + Integer.signum(deltaX);
-                    int interY = y + Integer.signum(deltaY);
-                    
-                    if (ehSolido(interX, interY) || celulas[interX][interY].getTipo() == 'B') {
-                        continue;
-                    }
-                }
-                
-                // Bloquear movimento dos zumbis para posições com baús
-                if (!ehSolido(novoX, novoY) && celulas[novoX][novoY].getTipo() != 'B') {
-                    celulas[x][y] = Imovel.criarImovel('V');
-                    ((Movel) zumbi).mover(passoX, passoY);
-                    celulas[novoX][novoY] = zumbi;
-                    
-                    if (Math.abs(novoX - jogadorX) + Math.abs(novoY - jogadorY) == 1) {
-                        iniciarCombate(novoX, novoY);
-                    }
-                    return true;
+                if (ehSolido(interX, interY) || celulas[interX][interY].getTipo() == 'B') {
+                    continue;
                 }
             }
-        }
-        
-        int[][] direcoes = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
-        for (int i = 0; i < direcoes.length; i++) {
-            int j = random.nextInt(direcoes.length);
-            int[] temp = direcoes[i];
-            direcoes[i] = direcoes[j];
-            direcoes[j] = temp;
-        }
-        
-        for (int[] dir : direcoes) {
-            int novoX = x + dir[0];
-            int novoY = y + dir[1];
             
-            if (isDentroDoTabuleiro(novoX, novoY) && !ehSolido(novoX, novoY) && celulas[novoX][novoY].getTipo() != 'B') {
+            // Bloquear movimento dos zumbis para posições com baús
+            if (!ehSolido(novoX, novoY) && celulas[novoX][novoY].getTipo() != 'B') {
                 celulas[x][y] = Imovel.criarImovel('V');
-                ((Movel) zumbi).mover(dir[0], dir[1]);
+                ((Movel) zumbi).mover(passoX, passoY);
                 celulas[novoX][novoY] = zumbi;
                 
                 if (Math.abs(novoX - jogadorX) + Math.abs(novoY - jogadorY) == 1) {
@@ -391,9 +373,70 @@ public void turnoPersonagem(String acao) {
                 return true;
             }
         }
-        
-        return false;
     }
+    
+    // Se não conseguiu mover diretamente, tenta movimento inteligente ao redor do obstáculo
+    int[][] direcoesPrioritarias = new int[4][2];
+    
+    // Determina prioridade de direções baseadas na posição do jogador
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        // Movimento horizontal é mais importante
+        direcoesPrioritarias[0] = new int[]{Integer.signum(deltaX), 0};  // Direção principal
+        direcoesPrioritarias[1] = new int[]{0, Integer.signum(deltaY)};  // Direção secundária
+        direcoesPrioritarias[2] = new int[]{0, -Integer.signum(deltaY)}; // Alternativa
+        direcoesPrioritarias[3] = new int[]{-Integer.signum(deltaX), 0}; // Último recurso
+    } else {
+        // Movimento vertical é mais importante
+        direcoesPrioritarias[0] = new int[]{0, Integer.signum(deltaY)};  // Direção principal
+        direcoesPrioritarias[1] = new int[]{Integer.signum(deltaX), 0};  // Direção secundária
+        direcoesPrioritarias[2] = new int[]{-Integer.signum(deltaX), 0}; // Alternativa
+        direcoesPrioritarias[3] = new int[]{0, -Integer.signum(deltaY)}; // Último recurso
+    }
+    
+    // Tenta as direções em ordem de prioridade
+    for (int[] dir : direcoesPrioritarias) {
+        int novoX = x + dir[0];
+        int novoY = y + dir[1];
+        
+        if (isDentroDoTabuleiro(novoX, novoY) && !ehSolido(novoX, novoY) && celulas[novoX][novoY].getTipo() != 'B') {
+            celulas[x][y] = Imovel.criarImovel('V');
+            ((Movel) zumbi).mover(dir[0], dir[1]);
+            celulas[novoX][novoY] = zumbi;
+            
+            if (Math.abs(novoX - jogadorX) + Math.abs(novoY - jogadorY) == 1) {
+                iniciarCombate(novoX, novoY);
+            }
+            return true;
+        }
+    }
+    
+    // Somente se tudo falhar, use movimento aleatório (como último recurso)
+    int[][] direcoesAleatorias = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+    for (int i = 0; i < direcoesAleatorias.length; i++) {
+        int j = random.nextInt(direcoesAleatorias.length);
+        int[] temp = direcoesAleatorias[i];
+        direcoesAleatorias[i] = direcoesAleatorias[j];
+        direcoesAleatorias[j] = temp;
+    }
+    
+    for (int[] dir : direcoesAleatorias) {
+        int novoX = x + dir[0];
+        int novoY = y + dir[1];
+        
+        if (isDentroDoTabuleiro(novoX, novoY) && !ehSolido(novoX, novoY) && celulas[novoX][novoY].getTipo() != 'B') {
+            celulas[x][y] = Imovel.criarImovel('V');
+            ((Movel) zumbi).mover(dir[0], dir[1]);
+            celulas[novoX][novoY] = zumbi;
+            
+            if (Math.abs(novoX - jogadorX) + Math.abs(novoY - jogadorY) == 1) {
+                iniciarCombate(novoX, novoY);
+            }
+            return true;
+        }
+    }
+    
+    return false;
+}
 
     private boolean isDentroDoTabuleiro(int x, int y) {
         return x >= 0 && x < TAMANHO && y >= 0 && y < TAMANHO;
