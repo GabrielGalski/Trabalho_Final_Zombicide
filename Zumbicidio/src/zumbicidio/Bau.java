@@ -12,6 +12,6 @@ public class Bau extends Imovel implements Serializable {
 
     @Override
     public JComponent getVisual() {
-        return new Celula('B'); // Cria a célula diretamente com o tipo 'B'
+        return new Celula('B'); 
     }
 }

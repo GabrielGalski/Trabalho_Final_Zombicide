@@ -10,7 +10,6 @@ import javax.swing.BoxLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.BorderLayout;
-import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -41,60 +40,64 @@ public class PainelDeJogo extends JPanel {
         
         add(tabuleiro, BorderLayout.CENTER);
         
-        JPanel painelAcoes = new JPanel();
-        painelAcoes.setLayout(new BoxLayout(painelAcoes, BoxLayout.Y_AXIS));
-        painelAcoes.setBackground(new Color(0x5E2129));
-        painelAcoes.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        
-        JPanel painelCombate = new JPanel(new GridLayout(2, 1, 3, 3));
-        painelCombate.setBackground(new Color(0x5E2129));
-        painelCombate.setBorder(BorderFactory.createTitledBorder(
-            BorderFactory.createLineBorder(Color.WHITE), "Combate", 
-            javax.swing.border.TitledBorder.CENTER, 
-            javax.swing.border.TitledBorder.TOP, null, Color.WHITE));
-        
-        botaoBater = criarBotao("Bater", new Dimension(80, 30));
-        botaoAtirar = criarBotao("Atirar", new Dimension(80, 30));
-        painelCombate.add(botaoBater);
-        painelCombate.add(botaoAtirar);
-        painelAcoes.add(painelCombate);
-        
-        painelAcoes.add(Box.createRigidArea(new Dimension(0, 10)));
-        
-        JPanel painelStatus = new JPanel(new GridLayout(2, 1, 3, 3));
-        painelStatus.setBackground(new Color(0x5E2129));
-        painelStatus.setBorder(BorderFactory.createTitledBorder(
-            BorderFactory.createLineBorder(Color.WHITE), "Status", 
-            javax.swing.border.TitledBorder.CENTER, 
-            javax.swing.border.TitledBorder.TOP, null, Color.WHITE));
-        
-        botaoBandagem = criarBotao("Cura", new Dimension(80, 30));
-        botaoVida = criarBotao("Vida", new Dimension(80, 30));
-        painelStatus.add(botaoBandagem);
-        painelStatus.add(botaoVida);
-        painelAcoes.add(painelStatus);
-        
-        painelAcoes.add(Box.createRigidArea(new Dimension(0, 10)));
-        
-        JPanel painelSistema = new JPanel(new GridLayout(3, 1, 3, 3));
-        painelSistema.setBackground(new Color(0x5E2129));
-        painelSistema.setBorder(BorderFactory.createTitledBorder(
-            BorderFactory.createLineBorder(Color.WHITE), "Sistema", 
-            javax.swing.border.TitledBorder.CENTER, 
-            javax.swing.border.TitledBorder.TOP, null, Color.WHITE));
-        
-        botaoGuia = criarBotao("Guia", new Dimension(80, 30));
-        botaoSalvar = criarBotao("Salvar", new Dimension(80, 30));
-        botaoSair = criarBotao("Sair", new Dimension(80, 30));
-        
-        painelSistema.add(botaoGuia);
-        painelSistema.add(botaoSalvar);
-        painelSistema.add(botaoSair);
-        painelAcoes.add(painelSistema);
-        
-        painelAcoes.add(Box.createVerticalGlue());
-        
-        add(painelAcoes, BorderLayout.EAST);
+JPanel painelAcoes = new JPanel();
+painelAcoes.setLayout(new BoxLayout(painelAcoes, BoxLayout.Y_AXIS));
+painelAcoes.setBackground(new Color(0x5E2129));
+painelAcoes.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+
+// Adiciona espaço flexível no topo
+painelAcoes.add(Box.createVerticalGlue());
+
+JPanel painelCombate = new JPanel(new GridLayout(2, 1, 3, 3));
+painelCombate.setBackground(new Color(0x5E2129));
+painelCombate.setBorder(BorderFactory.createTitledBorder(
+    BorderFactory.createLineBorder(Color.WHITE), "Combate", 
+    javax.swing.border.TitledBorder.CENTER, 
+    javax.swing.border.TitledBorder.TOP, null, Color.WHITE));
+
+botaoBater = criarBotao("Bater", new Dimension(80, 30));
+botaoAtirar = criarBotao("Atirar", new Dimension(80, 30));
+painelCombate.add(botaoBater);
+painelCombate.add(botaoAtirar);
+painelAcoes.add(painelCombate);
+
+painelAcoes.add(Box.createRigidArea(new Dimension(0, 10)));
+
+JPanel painelStatus = new JPanel(new GridLayout(2, 1, 3, 3));
+painelStatus.setBackground(new Color(0x5E2129));
+painelStatus.setBorder(BorderFactory.createTitledBorder(
+    BorderFactory.createLineBorder(Color.WHITE), "Status", 
+    javax.swing.border.TitledBorder.CENTER, 
+    javax.swing.border.TitledBorder.TOP, null, Color.WHITE));
+
+botaoBandagem = criarBotao("Cura", new Dimension(80, 30));
+botaoVida = criarBotao("Vida", new Dimension(80, 30));
+painelStatus.add(botaoBandagem);
+painelStatus.add(botaoVida);
+painelAcoes.add(painelStatus);
+
+painelAcoes.add(Box.createRigidArea(new Dimension(0, 10)));
+
+JPanel painelSistema = new JPanel(new GridLayout(3, 1, 3, 3));
+painelSistema.setBackground(new Color(0x5E2129));
+painelSistema.setBorder(BorderFactory.createTitledBorder(
+    BorderFactory.createLineBorder(Color.WHITE), "Sistema", 
+    javax.swing.border.TitledBorder.CENTER, 
+    javax.swing.border.TitledBorder.TOP, null, Color.WHITE));
+
+botaoGuia = criarBotao("Guia", new Dimension(80, 30));
+botaoSalvar = criarBotao("Salvar", new Dimension(80, 30));
+botaoSair = criarBotao("Sair", new Dimension(80, 30));
+
+painelSistema.add(botaoGuia);
+painelSistema.add(botaoSalvar);
+painelSistema.add(botaoSair);
+painelAcoes.add(painelSistema);
+
+// Adiciona espaço flexível no final
+painelAcoes.add(Box.createVerticalGlue());
+
+add(painelAcoes, BorderLayout.EAST);
         
         botaoSalvar.addActionListener(e -> tabuleiro.salvarJogo(frame.getSavePath()));
 

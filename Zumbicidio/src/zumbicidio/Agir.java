@@ -53,48 +53,53 @@ public class Agir {
             int novaVida = Math.min(personagem.getVida() + 2, 5);
             personagem.setVida(novaVida);
             personagem.usarBandagem();
-            if (!tabuleiro.isEmCombate()) {
-                // Usar turnoPersonagem para gerenciar o turno fora de combate
-                tabuleiro.turnoPersonagem("curar");
-            }
         }
     }
 
-    public static String coletar(Personagem personagem, Tabuleiro tabuleiro, int x, int y) {
-        if (tabuleiro.getCelula(x, y).getTipo() != 'B') {
-            return "Nenhum baú aqui!";
-        }
+public static String coletar(Personagem personagem, Tabuleiro tabuleiro, int x, int y) {
+    if (tabuleiro.getCelula(x, y).getTipo() != 'B') {
+        return "Nenhum baú aqui!";
+    }
 
-        for (int i = 0; i < tabuleiro.TAMANHO; i++) {
-            for (int j = 0; j < tabuleiro.TAMANHO; j++) {
-                Entidade entidade = tabuleiro.getCelula(i, j);
-                if (entidade.getTipo() == 'Z' || entidade.getTipo() == 'C' || 
-                    entidade.getTipo() == 'R' || entidade.getTipo() == 'G') {
-                    if (i == x && j == y) {
-                        return "Um baú foi destruído, nenhum item ganho!";
-                    }
+    // Verifica se há zumbis próximos ao baú
+    for (int i = 0; i < tabuleiro.TAMANHO; i++) {
+        for (int j = 0; j < tabuleiro.TAMANHO; j++) {
+            Entidade entidade = tabuleiro.getCelula(i, j);
+            if (entidade.getTipo() == 'Z' || entidade.getTipo() == 'C' || 
+                entidade.getTipo() == 'R' || entidade.getTipo() == 'G') {
+                if (i == x && j == y) {
+                    return "Um baú foi destruído, nenhum item ganho!";
                 }
             }
         }
+    }
 
-        int chance = random.nextInt(100);
-        if (chance < 40) {
-            personagem.adicionarBala();
-            return "Você encontrou uma pistola com 1 bala! Balas: " + personagem.getBalas();
-        } else if (chance < 80) {
-            personagem.adicionarBandagem();
-            return "Você encontrou uma bandagem! Bandagens: " + personagem.getBandagens();
+    int chance = random.nextInt(100); // Gera um número aleatório entre 0 e 99
+
+    if (chance < 5) {
+        ZumbiRastejante zumbiRastejante = new ZumbiRastejante(x, y);
+        tabuleiro.setCelula(x, y, zumbiRastejante);
+        tabuleiro.iniciarCombate(x, y);
+        return "Você abriu o baú, mas era uma armadilha! Um zumbi rastejante apareceu!";
+    } else if (chance < 45) { // 40% de chance (5-44)
+        personagem.adicionarBandagem();
+        return "Você encontrou uma bandagem! Bandagens: " + personagem.getBandagens();
+    } else if (chance < 85) { // 40% de chance (45-84)
+        personagem.adicionarBala();
+        return "Você encontrou uma pistola com 1 bala! Balas: " + personagem.getBalas();
+    } else if (chance < 100) { // 15% de chance (85-99)
+        if (!personagem.temTaco()) {
+            personagem.setTemTaco(true);
+            return "Você encontrou um taco de basebol! Seu ataque agora causa 2 de dano.";
         } else {
-            if (!personagem.temTaco()) {
-                personagem.setTemTaco(true);
-                return "Você encontrou um taco de basebol! Seu ataque agora causa 2 de dano.";
-            } else {
-                personagem.adicionarBandagem();
-                return "Você já tem um taco! Encontrou uma bandagem extra. Bandagens: " + personagem.getBandagens();
-            }
+            personagem.adicionarBandagem();
+            return "Encontrou uma bandagem extra. Bandagens: " + personagem.getBandagens();
         }
     }
 
+    tabuleiro.setCelula(x, y, Imovel.criarImovel('V')); // Remove o baú
+    return "Você abriu o baú, mas não encontrou nada útil.";
+}
     public static boolean esquivar(Personagem personagem) {
         return random.nextInt(5) < personagem.getPercepcao();
     }

@@ -120,7 +120,7 @@ public class Tabuleiro extends JPanel implements Serializable {
 
                 if (destino instanceof ZumbiRastejante) {
                     personagem.setVida(personagem.getVida() - 1);
-                    JOptionPane.showMessageDialog(this, "Você foi emboscado por um Zumbi Rastejante! Perdeu 1 de vida.", 
+                    JOptionPane.showMessageDialog(this, "Você foi emboscado por um Zumbi Rastejante! Perdeu 1 de vida.",
                                                   "Emboscada", JOptionPane.WARNING_MESSAGE);
                     iniciarCombate(destinoX, destinoY);
                 } else if (ehZumbi(tipoDestino)) {
@@ -144,7 +144,7 @@ public class Tabuleiro extends JPanel implements Serializable {
         }
     }
 
-    private void iniciarCombate(int x, int y) {
+    void iniciarCombate(int x, int y) {
         emCombate = true;
         zumbiEmCombate = celulas[x][y];
         combateX = x;
@@ -153,7 +153,7 @@ public class Tabuleiro extends JPanel implements Serializable {
 
         Agir.ResultadoAtaque resultadoZumbi = Agir.bater(zumbiEmCombate, personagem);
         int danoZumbi = resultadoZumbi.dano;
-        
+
         if (danoZumbi > 0) {
             personagem.setVida(personagem.getVida() - danoZumbi);
             relatorioCombate.append("Zumbi ataca e causa ").append(danoZumbi).append(" de dano!");
@@ -169,8 +169,8 @@ public class Tabuleiro extends JPanel implements Serializable {
         JOptionPane.showMessageDialog(this, relatorioCombate.toString(), "Combate", JOptionPane.INFORMATION_MESSAGE);
     }
 
-public void turnoPersonagem(String acao) {
-    relatorioCombate = new StringBuilder(); // Reinicia o relatório
+   public void turnoPersonagem(String acao) {
+    relatorioCombate = new StringBuilder();
 
     int vidaZumbi = 0;
     boolean combateAtivo = emCombate && zumbiEmCombate != null;
@@ -200,6 +200,7 @@ public void turnoPersonagem(String acao) {
             }
             relatorioCombate.append("\n");
             break;
+
         case "atirar":
             if (!combateAtivo) return;
             Agir.ResultadoAtaque resultadoTiro = Agir.atirar(personagem, zumbiEmCombate);
@@ -215,24 +216,42 @@ public void turnoPersonagem(String acao) {
                 relatorioCombate.append("Sem balas para atirar!\n");
             }
             break;
-case "curar":
-    int vidaAntes = personagem.getVida();
-    boolean tinhaItem = personagem.getBandagens() > 0;
-    Agir.heal(personagem, this);
-    int vidaDepois = personagem.getVida();
-    
-    relatorioCombate = new StringBuilder(); // Reinicia o relatório antes de adicionar qualquer mensagem
-    
-    if (vidaDepois > vidaAntes) {
-        relatorioCombate.append("Você usou uma bandagem e recuperou ")
-                      .append(vidaDepois - vidaAntes)
-                      .append(" pontos de vida!");
-    } else if (tinhaItem) {
-        relatorioCombate.append("Não foi possível usar a bandagem agora.");
-    } else {
-        relatorioCombate.append("Você não tem bandagens para usar!");
-    }
-    break;
+
+        case "curar":
+            int vidaAntes = personagem.getVida();
+            Agir.heal(personagem, this);
+            int vidaDepois = personagem.getVida();
+            if (vidaDepois > vidaAntes) {
+                relatorioCombate.append("Você usou uma bandagem e recuperou ")
+                                .append(vidaDepois - vidaAntes)
+                                .append(" pontos de vida!");
+            } else {
+                relatorioCombate.append("Você tentou usar uma bandagem, mas já está com a vida máxima.");
+            }
+            relatorioCombate.append("\n");
+
+            // Se estiver em combate, o zumbi ataca após a cura
+            if (combateAtivo) {
+                Agir.ResultadoAtaque resultadoZumbi = Agir.bater(zumbiEmCombate, personagem);
+                int danoZumbi = resultadoZumbi.dano;
+                if (danoZumbi > 0) {
+                    personagem.setVida(personagem.getVida() - danoZumbi);
+                    relatorioCombate.append("Zumbi ataca e causa ").append(danoZumbi).append(" de dano!");
+                    if (resultadoZumbi.dadoCritico == 6) {
+                        relatorioCombate.append(" (Crítico!)");
+                    }
+                    relatorioCombate.append("\n");
+                } else {
+                    relatorioCombate.append("Zumbi ataca, mas você esquiva!").append("\n");
+                }
+            }
+
+            // Se não estiver em combate, os zumbis se movem após a cura
+            if (!combateAtivo) {
+                moverZumbis();
+            }
+            break;
+
         case "moverZumbis":
             if (!combateAtivo) {
                 moverZumbis();
@@ -253,19 +272,7 @@ case "curar":
         }
 
         if (vidaZumbi > 0) {
-            Agir.ResultadoAtaque resultadoZumbi = Agir.bater(zumbiEmCombate, personagem);
-            int danoZumbi = resultadoZumbi.dano;
-            
-            if (danoZumbi > 0) {
-                personagem.setVida(personagem.getVida() - danoZumbi);
-                relatorioCombate.append("Zumbi ataca e causa ").append(danoZumbi).append(" de dano!");
-                if (resultadoZumbi.dadoCritico == 6) {
-                    relatorioCombate.append(" (Crítico!)");
-                }
-                relatorioCombate.append("\n");
-            } else {
-                relatorioCombate.append("Zumbi ataca, mas você esquiva!").append("\n");
-            }
+            // O zumbi já atacou após a cura, então não precisa atacar novamente
         } else {
             String classeZumbi = "";
             if (zumbiEmCombate instanceof ZumbiComum) classeZumbi = "comum";
@@ -288,12 +295,13 @@ case "curar":
     }
 
     atualizarVisibilidade();
-    if (combateAtivo || acao.equals("curar")) { // Exibir para combate ou cura
-        JOptionPane.showMessageDialog(this, relatorioCombate.toString(), 
+    if (combateAtivo || acao.equals("curar")) {
+        JOptionPane.showMessageDialog(this, relatorioCombate.toString(),
                                       combateAtivo ? "Combate" : "Ação", JOptionPane.INFORMATION_MESSAGE);
     }
     verificarFimDeJogo();
 }
+
     private void moverZumbis() {
         if (emCombate) return;
 
@@ -305,137 +313,143 @@ case "curar":
         for (int i = 0; i < TAMANHO; i++) {
             for (int j = 0; j < TAMANHO; j++) {
                 Entidade entidade = celulasCopia[i][j];
-                if (entidade instanceof Movel && ehZumbi(entidade.getTipo())) {
-                    boolean isZumbiCorredor = entidade.getTipo() == 'C';
-                    int distX = jogadorX - i;
-                    int distY = jogadorY - j;
-                    boolean moveHorizontalFirst = Math.abs(distX) >= Math.abs(distY);
-                    int deltaX = Integer.signum(distX);
-                    int deltaY = Integer.signum(distY);
-                    int maxStep = isZumbiCorredor ? 2 : 1;
-                    
-                    boolean movido = false;
-                    if (moveHorizontalFirst) {
-                        movido = tentarMoverZumbi(i, j, deltaX * maxStep, 0, entidade, isZumbiCorredor);
-                        if (!movido) {
-                            movido = tentarMoverZumbi(i, j, 0, deltaY * maxStep, entidade, isZumbiCorredor);
-                        }
-                    } else {
-                        movido = tentarMoverZumbi(i, j, 0, deltaY * maxStep, entidade, isZumbiCorredor);
-                        if (!movido) {
-                            movido = tentarMoverZumbi(i, j, deltaX * maxStep, 0, entidade, isZumbiCorredor);
-                        }
-                    }
+                if (entidade instanceof Movel && ehZumbi(entidade.getTipo()) && !(entidade instanceof ZumbiGigante)) {
+                    int maxSteps = (entidade.getTipo() == 'C') ? 2 : 1; // Corredor move 2, outros 1
+                    tentarMoverZumbi(i, j, entidade, maxSteps);
                 }
             }
         }
         atualizarVisibilidade();
         verificarFimDeJogo();
     }
+
+    private void tentarMoverZumbi(int x, int y, Entidade zumbi, int maxSteps) {
+    // Save the original entity at the zombie's position to check if it's a chest
+    boolean isOriginalPositionChest = celulas[x][y].getTipo() == 'B';
     
-   private boolean tentarMoverZumbi(int x, int y, int deltaX, int deltaY, Entidade zumbi, boolean isZumbiCorredor) {
-    if (deltaX == 0 && deltaY == 0) return false;
-    
-    int maxStep = Math.max(Math.abs(deltaX), Math.abs(deltaY));
-    
-    // Tenta mover na direção do jogador com o passo máximo permitido
-    for (int step = maxStep; step > 0; step--) {
-        int passoX = Integer.signum(deltaX) * step;
-        int passoY = Integer.signum(deltaY) * step;
-        
-        int novoX = x + passoX;
-        int novoY = y + passoY;
-        
+    int distX = jogadorX - x;
+    int distY = jogadorY - y;
+    int stepX = Integer.signum(distX);
+    int stepY = Integer.signum(distY);
+    boolean prioridadeHorizontal = Math.abs(distX) >= Math.abs(distY);
+
+    // Tenta mover na direção prioritária (horizontal ou vertical)
+    for (int step = maxSteps; step > 0; step--) {
+        int novoX = x;
+        int novoY = y;
+        if (prioridadeHorizontal) {
+            novoX = x + stepX * step;
+        } else {
+            novoY = y + stepY * step;
+        }
+
         if (isDentroDoTabuleiro(novoX, novoY)) {
             if (novoX == jogadorX && novoY == jogadorY) {
                 iniciarCombate(x, y);
-                return true;
+                return;
             }
-            
-            if (step == 2 && isZumbiCorredor) {
-                int interX = x + Integer.signum(deltaX);
-                int interY = y + Integer.signum(deltaY);
+
+            if (step == 2) {
+                int interX = x + (prioridadeHorizontal ? stepX : 0);
+                int interY = y + (prioridadeHorizontal ? 0 : stepY);
+                if (!ehPassavel(interX, interY)) continue;
+            }
+
+            if (ehPassavel(novoX, novoY)) {
+                // Remember the original entity at the destination
+                Entidade entidadeDestino = celulas[novoX][novoY];
                 
-                if (ehSolido(interX, interY) || celulas[interX][interY].getTipo() == 'B') {
-                    continue;
+                // Clean the original position, respecting if it was a chest
+                if (isOriginalPositionChest) {
+                    celulas[x][y] = new Bau();
+                } else {
+                    celulas[x][y] = Imovel.criarImovel('V');
                 }
-            }
-            
-            // Bloquear movimento dos zumbis para posições com baús
-            if (!ehSolido(novoX, novoY) && celulas[novoX][novoY].getTipo() != 'B') {
-                celulas[x][y] = Imovel.criarImovel('V');
-                ((Movel) zumbi).mover(passoX, passoY);
+                
+                // Move the zombie
+                ((Movel) zumbi).mover(novoX - x, novoY - y);
+                
+                // Place the zombie at the new position
                 celulas[novoX][novoY] = zumbi;
                 
-                if (Math.abs(novoX - jogadorX) + Math.abs(novoY - jogadorY) == 1) {
+                if (Math.abs(novoX - jogadorX) + Math.abs(novoY - jogadorY) <= 1) {
                     iniciarCombate(novoX, novoY);
                 }
-                return true;
+                return;
             }
         }
     }
+
+    // The same fix needs to be applied to the other movement attempts in this function
+    // Secondary direction and random direction movement code...
     
-    // Se não conseguiu mover diretamente, tenta movimento inteligente ao redor do obstáculo
-    int[][] direcoesPrioritarias = new int[4][2];
-    
-    // Determina prioridade de direções baseadas na posição do jogador
-    if (Math.abs(deltaX) > Math.abs(deltaY)) {
-        // Movimento horizontal é mais importante
-        direcoesPrioritarias[0] = new int[]{Integer.signum(deltaX), 0};  // Direção principal
-        direcoesPrioritarias[1] = new int[]{0, Integer.signum(deltaY)};  // Direção secundária
-        direcoesPrioritarias[2] = new int[]{0, -Integer.signum(deltaY)}; // Alternativa
-        direcoesPrioritarias[3] = new int[]{-Integer.signum(deltaX), 0}; // Último recurso
-    } else {
-        // Movimento vertical é mais importante
-        direcoesPrioritarias[0] = new int[]{0, Integer.signum(deltaY)};  // Direção principal
-        direcoesPrioritarias[1] = new int[]{Integer.signum(deltaX), 0};  // Direção secundária
-        direcoesPrioritarias[2] = new int[]{-Integer.signum(deltaX), 0}; // Alternativa
-        direcoesPrioritarias[3] = new int[]{0, -Integer.signum(deltaY)}; // Último recurso
-    }
-    
-    // Tenta as direções em ordem de prioridade
-    for (int[] dir : direcoesPrioritarias) {
-        int novoX = x + dir[0];
-        int novoY = y + dir[1];
-        
-        if (isDentroDoTabuleiro(novoX, novoY) && !ehSolido(novoX, novoY) && celulas[novoX][novoY].getTipo() != 'B') {
-            celulas[x][y] = Imovel.criarImovel('V');
-            ((Movel) zumbi).mover(dir[0], dir[1]);
-            celulas[novoX][novoY] = zumbi;
-            
-            if (Math.abs(novoX - jogadorX) + Math.abs(novoY - jogadorY) == 1) {
-                iniciarCombate(novoX, novoY);
+    // Tenta a direção secundária se a prioritária falhar
+    for (int step = maxSteps; step > 0; step--) {
+        int novoX = x;
+        int novoY = y;
+        if (!prioridadeHorizontal) {
+            novoX = x + stepX * step;
+        } else {
+            novoY = y + stepY * step;
+        }
+
+        if (isDentroDoTabuleiro(novoX, novoY)) {
+            if (novoX == jogadorX && novoY == jogadorY) {
+                iniciarCombate(x, y);
+                return;
             }
-            return true;
+
+            if (step == 2) {
+                int interX = x + (!prioridadeHorizontal ? stepX : 0);
+                int interY = y + (!prioridadeHorizontal ? 0 : stepY);
+                if (!ehPassavel(interX, interY)) continue;
+            }
+
+            if (ehPassavel(novoX, novoY)) {
+                // Remember destination entity
+                Entidade entidadeDestino = celulas[novoX][novoY];
+                
+                // Clean original position, respecting if it was a chest
+                if (isOriginalPositionChest) {
+                    celulas[x][y] = new Bau();
+                } else {
+                    celulas[x][y] = Imovel.criarImovel('V');
+                }
+                
+                ((Movel) zumbi).mover(novoX - x, novoY - y);
+                celulas[novoX][novoY] = zumbi;
+                
+                if (Math.abs(novoX - jogadorX) + Math.abs(novoY - jogadorY) <= 1) {
+                    iniciarCombate(novoX, novoY);
+                }
+                return;
+            }
         }
     }
-    
-    // Somente se tudo falhar, use movimento aleatório (como último recurso)
-    int[][] direcoesAleatorias = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
-    for (int i = 0; i < direcoesAleatorias.length; i++) {
-        int j = random.nextInt(direcoesAleatorias.length);
-        int[] temp = direcoesAleatorias[i];
-        direcoesAleatorias[i] = direcoesAleatorias[j];
-        direcoesAleatorias[j] = temp;
-    }
-    
-    for (int[] dir : direcoesAleatorias) {
-        int novoX = x + dir[0];
-        int novoY = y + dir[1];
-        
-        if (isDentroDoTabuleiro(novoX, novoY) && !ehSolido(novoX, novoY) && celulas[novoX][novoY].getTipo() != 'B') {
-            celulas[x][y] = Imovel.criarImovel('V');
-            ((Movel) zumbi).mover(dir[0], dir[1]);
-            celulas[novoX][novoY] = zumbi;
-            
-            if (Math.abs(novoX - jogadorX) + Math.abs(novoY - jogadorY) == 1) {
-                iniciarCombate(novoX, novoY);
+
+    // Se não conseguir mover na direção prioritária ou secundária, tenta mover em qualquer direção válida
+    for (int i = -1; i <= 1; i++) {
+        for (int j = -1; j <= 1; j++) {
+            if (i == 0 && j == 0) continue; // Ignora a posição atual
+            int novoX = x + i;
+            int novoY = y + j;
+            if (isDentroDoTabuleiro(novoX, novoY) && ehPassavel(novoX, novoY)) {
+                // Remember destination entity
+                Entidade entidadeDestino = celulas[novoX][novoY];
+                
+                // Clean original position, respecting if it was a chest
+                if (isOriginalPositionChest) {
+                    celulas[x][y] = new Bau();
+                } else {
+                    celulas[x][y] = Imovel.criarImovel('V');
+                }
+                
+                ((Movel) zumbi).mover(i, j);
+                celulas[novoX][novoY] = zumbi;
+                return;
             }
-            return true;
         }
     }
-    
-    return false;
 }
 
     private boolean isDentroDoTabuleiro(int x, int y) {
@@ -447,6 +461,11 @@ case "curar":
         return tipo == '1' || tipo == 'Z' || tipo == 'C' || tipo == 'G' || tipo == 'P' || tipo == 'R';
     }
 
+    private boolean ehPassavel(int x, int y) {
+        char tipo = celulas[x][y].getTipo();
+        return tipo == 'V' || tipo == 'B'; // Zumbis podem passar por baús
+    }
+
     private boolean ehZumbi(char tipo) {
         return tipo == 'Z' || tipo == 'C' || tipo == 'G' || tipo == 'R';
     }
@@ -456,66 +475,63 @@ case "curar":
         atualizarVisibilidade();
     }
 
-   private void atualizarVisibilidade() {
-    for (int i = 0; i < TAMANHO; i++) {
-        for (int j = 0; j < TAMANHO; j++) {
-            visivel[i][j] = modoDebug || podeVerPosicao(i, j);
-            if (visivel[i][j]) {
-                memorizado[i][j] = true;
+    private void atualizarVisibilidade() {
+        for (int i = 0; i < TAMANHO; i++) {
+            for (int j = 0; j < TAMANHO; j++) {
+                visivel[i][j] = modoDebug || podeVerPosicao(i, j);
+                if (visivel[i][j]) {
+                    memorizado[i][j] = true;
+                }
             }
         }
-    }
-    
-    for (int i = 0; i < TAMANHO; i++) {
-        for (int j = 0; j < TAMANHO; j++) {
-            char tipo = celulas[i][j].getTipo();
-            String texto = "";
-            Color background = ((Celula) celulas[i][j].getVisual()).getBackground();
-            
-            if (visivel[i][j]) {
-                if (tipo == 'P' || tipo == 'Z' || tipo == 'C' || tipo == 'G' || tipo == 'B') {
-                    texto = String.valueOf(tipo);
-                } else if (tipo == 'R' && modoDebug) { // 'R' só aparece em modo DEBUG
-                    texto = "R";
+
+        for (int i = 0; i < TAMANHO; i++) {
+            for (int j = 0; j < TAMANHO; j++) {
+                char tipo = celulas[i][j].getTipo();
+                String texto = "";
+                Color background = ((Celula) celulas[i][j].getVisual()).getBackground();
+
+                if (visivel[i][j]) {
+                    if (tipo == 'P' || tipo == 'Z' || tipo == 'C' || tipo == 'G' || tipo == 'B') {
+                        texto = String.valueOf(tipo);
+                    } else if (tipo == 'R' && modoDebug) {
+                        texto = "R";
+                    }
+                    botoes[i][j].setText(texto);
+                    botoes[i][j].setBackground(background);
+                } else if (memorizado[i][j]) {
+                    Color corEsmaecida = new Color(
+                            Math.min(255, background.getRed() + 50),
+                            Math.min(255, background.getGreen() + 50),
+                            Math.min(255, background.getBlue() + 50)
+                    );
+                    if (tipo == '1' || tipo == 'V') {
+                        texto = "";
+                    } else if (tipo == 'B') {
+                        texto = "B";
+                    }
+                    botoes[i][j].setText(texto);
+                    botoes[i][j].setBackground(corEsmaecida);
+                } else {
+                    botoes[i][j].setText("");
+                    botoes[i][j].setBackground(Color.WHITE);
                 }
-                botoes[i][j].setText(texto);
-                botoes[i][j].setBackground(background);
-            } else if (memorizado[i][j]) {
-                Color corEsmaecida = new Color(
-                    Math.min(255, background.getRed() + 50),
-                    Math.min(255, background.getGreen() + 50),
-                    Math.min(255, background.getBlue() + 50)
-                );
-                
-                if (tipo == '1' || tipo == 'V') {
-                    texto = "";
-                } else if (tipo == 'B') {
-                    texto = "B";
-                }
-                
-                botoes[i][j].setText(texto);
-                botoes[i][j].setBackground(corEsmaecida);
-            } else {
-                botoes[i][j].setText("");
-                botoes[i][j].setBackground(Color.WHITE);
             }
         }
+        revalidate();
+        repaint();
     }
-    revalidate();
-    repaint();
-}
 
     private boolean podeVerPosicao(int x, int y) {
         if (Math.abs(x - jogadorX) + Math.abs(y - jogadorY) <= 1) {
             return true;
         }
-        
+
         if (x == jogadorX) {
             int inicio = Math.min(jogadorY, y);
             int fim = Math.max(jogadorY, y);
-            
             for (int j = inicio + 1; j < fim; j++) {
-                if (ehObstaculo(jogadorX, j)) {
+                if (blockView(jogadorX, j)) {
                     return false;
                 }
             }
@@ -523,21 +539,19 @@ case "curar":
         } else if (y == jogadorY) {
             int inicio = Math.min(jogadorX, x);
             int fim = Math.max(jogadorX, x);
-            
             for (int i = inicio + 1; i < fim; i++) {
-                if (ehObstaculo(i, jogadorY)) {
+                if (blockView(i, jogadorY)) {
                     return false;
                 }
             }
             return true;
         }
-        
         return false;
     }
 
-    private boolean ehObstaculo(int x, int y) {
+    private boolean blockView(int x, int y) {
         char tipo = celulas[x][y].getTipo();
-        return tipo == '1' || tipo == 'Z' || tipo == 'C' || tipo == 'G' || tipo == 'R';
+        return tipo == '1' || tipo == 'Z' || tipo == 'C' || tipo == 'G' || tipo == 'B'; // Rastejante não bloqueia visão
     }
 
     private Entidade criarEntidade(char tipo, int x, int y) {
@@ -608,7 +622,7 @@ case "curar":
         for (int i = 0; i < TAMANHO; i++) {
             for (int j = 0; j < TAMANHO; j++) {
                 Entidade entidade = celulas[i][j];
-                if (entidade instanceof ZumbiComum || entidade instanceof ZumbiCorredor || 
+                if (entidade instanceof ZumbiComum || entidade instanceof ZumbiCorredor ||
                     entidade instanceof ZumbiRastejante || entidade instanceof ZumbiGigante) {
                     zumbisRestantes = true;
                     break;
@@ -618,7 +632,7 @@ case "curar":
         }
 
         if (!zumbisRestantes) {
-            JOptionPane.showMessageDialog(this, "Mapa Finalizado! Você exterminou todos os zumbis.", 
+            JOptionPane.showMessageDialog(this, "Mapa Finalizado! Você exterminou todos os zumbis.",
                                           "Vitória", JOptionPane.INFORMATION_MESSAGE);
             frame.dispose();
         }
