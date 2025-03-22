@@ -50,7 +50,6 @@ public class Player extends Movel implements Serializable {
     }
 
     public void setAttack(int attack) {
-        // Método vazio conforme o original
     }
 
     public int getPercep() {

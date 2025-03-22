@@ -220,20 +220,19 @@ public class Engine extends JPanel {
         boolean combateAtivo = combate && zumbiCombate != null;
 
         if (combateAtivo) {
-            if (zumbiCombate instanceof Zumbi) {
-                vidaZumbi = ((Zumbi) zumbiCombate).getVida();
-            } else if (zumbiCombate instanceof ZumbiC) {
-                vidaZumbi = ((ZumbiC) zumbiCombate).getVida();
-            } else if (zumbiCombate instanceof ZumbiR) {
-                vidaZumbi = ((ZumbiR) zumbiCombate).getVida();
-            } else if (zumbiCombate instanceof ZumbiG) {
-                vidaZumbi = ((ZumbiG) zumbiCombate).getVida();
+            switch (zumbiCombate) {
+                case Zumbi zumbi -> vidaZumbi = zumbi.getVida();
+                case ZumbiC zumbiC -> vidaZumbi = zumbiC.getVida();
+                case ZumbiR zumbiR -> vidaZumbi = zumbiR.getVida();
+                case ZumbiG zumbiG -> vidaZumbi = zumbiG.getVida();
+                default -> {
+                }
             }
         }
 
         int dano = 0;
         switch (acao) {
-            case "bater":
+            case "bater" -> {
                 if (!combateAtivo) return;
                 Agir.danoTotal ataqueResult = Agir.ataque(player, zumbiCombate);
                 dano = ataqueResult.dano;
@@ -249,9 +248,9 @@ public class Engine extends JPanel {
                     }
                     combateTxt.append("\n");
                 }
-                break;
+            }
 
-            case "atirar":
+            case "atirar" -> {
                 if (!combateAtivo) return;
                 Agir.danoTotal tiroResult = Agir.atira(player, zumbiCombate);
                 dano = tiroResult.dano;
@@ -271,16 +270,16 @@ public class Engine extends JPanel {
                 } else {
                     combateTxt.append("Sem balas!\n");
                 }
-                break;
+            }
 
-            case "curar":
+            case "curar" -> {
                 int vidaAntes = player.getVida();
                 Agir.cura(player, this);
                 int vidaDepois = player.getVida();
                 if (vidaDepois > vidaAntes) {
                     combateTxt.append("Usou bandagem e recuperou ")
-                              .append(vidaDepois - vidaAntes)
-                              .append(" de vida!\n");
+                            .append(vidaDepois - vidaAntes)
+                            .append(" de vida!\n");
                 } else {
                     combateTxt.append("Tentou usar bandagem, mas vida já está cheia.\n");
                 }
@@ -289,25 +288,25 @@ public class Engine extends JPanel {
                     moveZumbis();
                     trocaVisao();
                 }
-                break;
+            }
 
-            case "moveZumbis":
+            case "moveZumbis" -> {
                 if (!combateAtivo) {
                     moveZumbis();
                     trocaVisao();
                 }
                 return;
+            }
         }
 
         if (combateAtivo) {
-            if (zumbiCombate instanceof Zumbi) {
-                ((Zumbi) zumbiCombate).setVida(vidaZumbi);
-            } else if (zumbiCombate instanceof ZumbiC) {
-                ((ZumbiC) zumbiCombate).setVida(vidaZumbi);
-            } else if (zumbiCombate instanceof ZumbiR) {
-                ((ZumbiR) zumbiCombate).setVida(vidaZumbi);
-            } else if (zumbiCombate instanceof ZumbiG) {
-                ((ZumbiG) zumbiCombate).setVida(vidaZumbi);
+            switch (zumbiCombate) {
+                case Zumbi zumbi -> zumbi.setVida(vidaZumbi);
+                case ZumbiC zumbiC -> zumbiC.setVida(vidaZumbi);
+                case ZumbiR zumbiR -> zumbiR.setVida(vidaZumbi);
+                case ZumbiG zumbiG -> zumbiG.setVida(vidaZumbi);
+                default -> {
+                }
             }
 
             if (vidaZumbi <= 0) {
@@ -511,8 +510,8 @@ public class Engine extends JPanel {
         for (int i = 0; i < TAM; i++) {
             for (int j = 0; j < TAM; j++) {
                 Entidade entidade = celulas[i][j];
-                if (entidade instanceof ZumbiR) {
-                    ((ZumbiR) entidade).setVisibleInDebug(debugMode);
+                if (entidade instanceof ZumbiR zumbiR) {
+                    zumbiR.setVisibleInDebug(debugMode);
                 }
 
                 visivel[i][j] = debugMode || temVisao(i, j);
@@ -568,17 +567,17 @@ public class Engine extends JPanel {
     }
 
     private Entidade criaEntidade(char tipo, int x, int y) {
-        switch (tipo) {
-            case 'P': return player;
-            case 'Z': return new Zumbi(x, y);
-            case 'C': return new ZumbiC(x, y);
-            case 'R': return new ZumbiR(x, y);
-            case 'G': return new ZumbiG(x, y);
-            case 'B': return new Bau();
-            case '1': return Imovel.createImovel('1');
-            case 'V': return Imovel.createImovel('V');
-            default: return Imovel.createImovel('V');
-        }
+        return switch (tipo) {
+            case 'P' -> player;
+            case 'Z' -> new Zumbi(x, y);
+            case 'C' -> new ZumbiC(x, y);
+            case 'R' -> new ZumbiR(x, y);
+            case 'G' -> new ZumbiG(x, y);
+            case 'B' -> new Bau();
+            case '1' -> Imovel.createImovel('1');
+            case 'V' -> Imovel.createImovel('V');
+            default -> Imovel.createImovel('V');
+        };
     }
 
     public void saveGame(String caminho) {
@@ -661,7 +660,7 @@ public class Engine extends JPanel {
         }
 
         if (player.getVida() <= 0) {
-            JOptionPane.showMessageDialog(this, "Você perdeu!", "Fim", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Você morreu.", "É o fim", JOptionPane.ERROR_MESSAGE);
             new Reinicia(frame, this).mostrarOpcoes();
         }
     }
