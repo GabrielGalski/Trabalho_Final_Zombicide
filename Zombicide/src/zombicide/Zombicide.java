@@ -3,89 +3,126 @@ package zombicide;
 import java.awt.EventQueue;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.Random; // Importar Random
+import java.util.Random;
 import java.util.Scanner;
 import javax.swing.JFrame;
 
 public final class Zombicide extends JFrame {
-    private static final long serialVersionUID = 1L;
     private Engine engine;
-    private WindowMenu windowMenu;
-    private static final String SAVE_PATH = "D:\\Arquivos\\Java\\Poo\\Recursos\\save.dat";
-    private static final String MAP_BASE_PATH = "D:\\Arquivos\\Java\\Poo\\Recursos\\Mapas\\mapa"; // Caminho base
-    private static final Random random = new Random(); // Instância de Random
+    private janelaMenu menu;
+    private static final String CAMINHO_SALVO = "D:\\Arquivos\\Java\\Poo\\Recursos\\save.dat";
+    private static final String CAMINHO_BASE_MAPA = "D:\\Arquivos\\Java\\Poo\\Recursos\\Mapas\\mapa";
+    private static final Random random = new Random();
+
+    private String mapaAtual;
+    private int percepcaoAtual;
+    private boolean debugAtual;
 
     public Zombicide() {
         engine = new Engine(this);
-        windowMenu = new WindowMenu(this, engine);
-        setupMenuWindow();
+        menu = new janelaMenu(this, engine);
+        setupMenu();
     }
 
-    private void setupMenuWindow() {
+    private void setupMenu() {
         setTitle("Zombicide - Gabriel Galski Machado");
         setSize(900, 900);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        add(windowMenu);
+        add(menu);
     }
 
     public void startDifficulty(boolean debugMode) {
         getContentPane().removeAll();
         setTitle("Zombicide - Gabriel Galski Machado");
         setSize(900, 900);
-        WindowPerc windowPerc = new WindowPerc(this, engine, debugMode);
-        add(windowPerc);
+        janelaPerc janelaPerc = new janelaPerc(this, engine, debugMode);
+        add(janelaPerc);
         revalidate();
         repaint();
     }
 
-    public void startGame(boolean debugMode, int perception) {
+    public void startGame(boolean debugMode, int percepcao) {
+        engine = new Engine(this);
+        carregaMapaAleatorio();
         getContentPane().removeAll();
         setTitle("Zombicide");
         setSize(900, 900);
         engine.setDebugMode(debugMode);
-        engine.setPerception(perception); // Salva a percepção no engine
-        WindowGame windowGame = new WindowGame(this, engine, debugMode, perception);
-        add(windowGame);
+        engine.setPercepcao(percepcao);
+        debugAtual = debugMode;
+        percepcaoAtual = percepcao;
+        janelaJogo janelaJogo = new janelaJogo(this, engine, debugMode, percepcao);
+        add(janelaJogo);
         revalidate();
         repaint();
     }
 
-    private void loadMap(String path) {
+    private void carregaMapa(String caminho) {
         try {
-            File file = new File(path);
-            Scanner scanner = new Scanner(file);
-            engine.loadMap(scanner);
+            File arquivo = new File(caminho);
+            Scanner scanner = new Scanner(arquivo);
+            engine.carregarMapa(scanner);
             scanner.close();
         } catch (FileNotFoundException e) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Arquivo de mapa não encontrado: " + path);
+            javax.swing.JOptionPane.showMessageDialog(this, "Mapa não encontrado: " + caminho);
             System.exit(1);
         }
     }
 
-    // Novo método para carregar um mapa aleatório
-    private void loadRandomMap() {
-        int mapNumber = random.nextInt(10) + 1; // Gera número entre 1 e 10
-        String mapPath = MAP_BASE_PATH + mapNumber + ".txt"; // Constrói o caminho do arquivo
-        loadMap(mapPath); // Chama o método loadMap com o caminho gerado
+    private void carregaMapaAleatorio() {
+        int numMapa = random.nextInt(10) + 1;
+        mapaAtual = CAMINHO_BASE_MAPA + numMapa + ".txt";
+        carregaMapa(mapaAtual);
     }
 
     public void loadGame() {
-        engine.loadGame(SAVE_PATH);
-        int perception = engine.getPerception();
+        engine.loadGame(CAMINHO_SALVO);
+        int percepcao = engine.getPercepcao();
         boolean debugMode = engine.isDebugMode();
-        startGame(debugMode, perception); // Inicia o jogo diretamente com a dificuldade carregada
+        startGame(debugMode, percepcao);
     }
 
     public String getSavePath() {
-        return SAVE_PATH;
+        return CAMINHO_SALVO;
+    }
+
+    public janelaMenu getMenu() {
+        return menu;
+    }
+
+    public void reiniciaTudo() {
+        engine.setVerificaFimJogo(false);
+        engine = new Engine(this);
+        carregaMapaAleatorio();
+        startGame(debugAtual, percepcaoAtual);
+        engine.setVerificaFimJogo(true);
+    }
+
+    public void reiniciaJogo() {
+        engine.setVerificaFimJogo(false);
+        engine = new Engine(this);
+        carregaMapa(mapaAtual);
+        startGame(debugAtual, percepcaoAtual);
+        engine.setVerificaFimJogo(true);
+    }
+
+    public void voltaMenu() {
+        engine.setVerificaFimJogo(false);
+        getContentPane().removeAll();
+        engine = new Engine(this);
+        menu = new janelaMenu(this, engine);
+        add(menu);
+        revalidate();
+        repaint();
+        engine.setVerificaFimJogo(true);
     }
 
     public static void main(String[] args) {
         EventQueue.invokeLater(() -> {
-            Zombicide game = new Zombicide();
-            game.loadRandomMap(); // Substitui loadMap por loadRandomMap
-            game.setVisible(true);
+            Zombicide jogo = new Zombicide();
+            jogo.carregaMapaAleatorio();
+            jogo.setVisible(true);
         });
     }
 }

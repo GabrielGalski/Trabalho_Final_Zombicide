@@ -3,27 +3,27 @@ package zombicide;
 import javax.swing.JComponent;
 import java.io.Serializable;
 
-public class Player extends Mobile implements Serializable {
+public class Player extends Movel implements Serializable {
     private static final long serialVersionUID = 1L;
-    private int health;
-    private int perception;
-    private int bandages;
-    private int bullets;
-    private boolean hasBat;
-    private int chestsOpened; // Novo atributo para contar baús abertos
+    private int vida;
+    private int percep;
+    private int temCura;
+    private int tiros;
+    private boolean temTaco;
+    private int baus;
 
-    public Player(int posX, int posY, int health, int attack) {
-        this(posX, posY, health, attack, 2);
+    public Player(int posX, int posY, int vida, int attack) {
+        this(posX, posY, vida, attack, 2);
     }
 
-    public Player(int posX, int posY, int health, int attack, int perception) {
+    public Player(int posX, int posY, int vida, int attack, int percep) {
         super('P', posX, posY);
-        this.health = health;
-        this.perception = perception;
-        this.bandages = 0;
-        this.bullets = 0;
-        this.hasBat = false;
-        this.chestsOpened = 0; // Inicializa o contador de baús
+        this.vida = vida;
+        this.percep = percep;
+        this.temCura = 0;
+        this.tiros = 0;
+        this.temTaco = false;
+        this.baus = 0; 
     }
 
     @Override
@@ -34,70 +34,70 @@ public class Player extends Mobile implements Serializable {
 
     @Override
     public JComponent getVisual() {
-        return new Cell('P');
+        return new Celula('P');
     }
 
-    public int getHealth() {
-        return health;
+    public int getVida() {
+        return vida;
     }
 
-    public void setHealth(int health) {
-        this.health = health;
+    public void setVida(int vida) {
+        this.vida = vida;
     }
 
     public int getAttack() {
-        return hasBat ? 2 : 1;
+        return temTaco ? 2 : 1;
     }
 
     public void setAttack(int attack) {
         // Método vazio conforme o original
     }
 
-    public int getPerception() {
-        return perception;
+    public int getPercep() {
+        return percep;
     }
 
-    public void setPerception(int perception) {
-        this.perception = perception;
+    public void setPercep(int percep) {
+        this.percep = percep;
     }
 
-    public int getBandages() {
-        return bandages;
+    public int getTemCura() {
+        return temCura;
     }
 
-    public void addBandage() {
-        if (bandages < 3) bandages++;
+    public void addCura() {
+        if (temCura < 3) temCura++;
     }
 
-    public void useBandage() {
-        if (bandages > 0) bandages--;
+    public void useCura() {
+        if (temCura > 0) temCura--;
     }
 
-    public int getBullets() {
-        return bullets;
+    public int getTiros() {
+        return tiros;
     }
 
-    public void addBullet() {
-        if (bullets < 3) bullets++;
+    public void addTiro() {
+        if (tiros < 3) tiros++;
     }
 
-    public void useBullet() {
-        if (bullets > 0) bullets--;
+    public void useTiro() {
+        if (tiros > 0) tiros--;
     }
 
-    public boolean hasBat() {
-        return hasBat;
+    public boolean temTaco() {
+        return temTaco;
     }
 
-    public void setHasBat(boolean hasBat) {
-        this.hasBat = hasBat;
+    public void setTemTaco(boolean temTaco) {
+        this.temTaco = temTaco;
     }
 
-    public void incrementChestsOpened() {
-        this.chestsOpened++;
+    public void incrementBaus() {
+        this.baus++;
     }
 
-    public int getChestsOpened() {
-        return this.chestsOpened;
+    public int getBaus() {
+        return this.baus;
     }
 }
